@@ -2,20 +2,44 @@ import json
 
 
 class Vacancy:
-    __slots__ = ('name', 'link', 'description', 'salary')
+    __slots__ = ('name_vacancy', 'link', 'description', 'salary')
 
-    def __init__(self, name, link, description, salary):
-        self.name = name
+    def __init__(self, name_vacancy, link, description, salary):
+        self.name_vacancy = name_vacancy
         self.link = link
         self.description = description
         self.salary = salary
 
-    def __str__(self):
-        return f'{self.name}, {self.link}, {self.description}, {self.salary}'
+    # def __str__(self):
+    #     return f'Вакансия: {self.name_vacancy};\nСсылка на вакансию: {self.link};\nОписание вакансии: {self.description};\nЗарплата: {self.salary} руб.'
 
     def __repr__(self):
-        return f'{self.name}, {self.link}, {self.description}, {self.salary}'
+        if self.salary:
+            return f'Вакансия: {self.name_vacancy};\nСсылка на вакансию: {self.link};\nОписание вакансии: {self.description};\nЗарплата: {self.salary} руб.'
+        else:
+            return f'Вакансия: {self.name_vacancy};\nСсылка на вакансию: {self.link};\nОписание вакансии: {self.description};\nЗарплата: не указана.'
 
+    def __lt__(self, other):
+        return self.salary < other.salary
+
+    def __le__(self, other):
+        return self.salary <= other.salary
+
+    def __gt__(self, other):
+        return self.salary > other.salary
+
+    def __ge__(self, other):
+        return self.salary >= other.salary
+
+    def __iter__(self):
+        self.value = 0
+        return self.value
+
+    def __next__(self):
+        if self.value < self.count:
+            self.value += 1
+        else:
+            raise StopIteration
 
 
 class CountMixin:
@@ -26,72 +50,83 @@ class CountMixin:
         Вернуть количество вакансий от текущего сервиса.
         Получать количество необходимо динамически из файла.
         """
-        pass
+        with open(self.data_file, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            for item in data:
+                return len(item)
 
 
-
-class HHVacancy(Vacancy):  # add counter mixin
+class HHVacancy(CountMixin, Vacancy):  # add counter mixin
     """ HeadHunter Vacancy """
 
-    def __init__(self, data_file):
-        name = data_file.get("name")
-        link = data_file.get("url")
-        description = data_file["snippet"].get("responsibility")
-        salary = data_file["salary"].get("from")
+    data_file = 'res_HH.json'
+    vacancies = []
 
+    def __init__(self, name, link, description, salary, company_name):
         super().__init__(name, link, description, salary)
+        self.company_name = company_name
+        self.count = CountMixin.get_count_of_vacancy
 
-        try:
-            self.salary = data_file["salary"].get("from")
-        except AttributeError as e:
-            self.salary = 0
-            print(e)
-
-    def __lt__(self, other):
-        return self.salary < other.salary
-
-    def __str__(self):
-        return f'HH: {self.company_name}, зарплата: {self.salary} руб/мес'
+    @classmethod
+    def filling_list_vacancies(cls, data_file):
+        with open(f'{data_file}', 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            for item in data:
+                name_vacancy_hh = item.get("name")
+                link_hh = item.get("url")
+                description_hh = item["snippet"].get("responsibility")
+                company_name_hh = item['employer'].get('name')
+                try:
+                    salary_hh = item["salary"].get("from")
+                    if salary_hh is None:
+                        salary_hh = 0
+                except AttributeError:
+                    salary_hh = 0
+                cls.vacancies.append(HHVacancy(name_vacancy_hh, link_hh, description_hh, salary_hh, company_name_hh))
 
     def __repr__(self):
-        return f'HH: {self.company_name} {self.salary}'
+        return f'HH: Название компании: {self.company_name} ' + super().__repr__()
 
 
-
-
-class SJVacancy(Vacancy):  # add counter mixin
+class SJVacancy(CountMixin, Vacancy):  # add counter mixin
     """ SuperJob Vacancy """
 
-    def __init__(self, data_file):
-        name = data_file.get("profession")
-        link = data_file["client"].get("link")
-        description = data_file.get("candidat")
-        salary = data_file.get("payment_from")
+    data_file = 'res_SJ.json'
+    vacancies = []
 
+    def __init__(self, name, link, description, salary, company_name):
         super().__init__(name, link, description, salary)
+        self.count = CountMixin.get_count_of_vacancy
+        self.company_name = company_name
+        print(self.count)
 
-        self.salary: float
-
-    def __lt__(self, other):
-        return self.salary < other.salary
-
-    def __str__(self):
-        return f'SJ: {self.company_name} зарплата: {self.salary} руб.мес'
+    @classmethod
+    def filling_list_vacancies(cls, data_file):
+        with open(f'{data_file}', 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            for item in data:
+                name_vacancy_sj = item.get("profession")
+                link_sj = item["client"].get("link")
+                description_sj = item.get("candidat")
+                company_name_sj = item["client"].get("title")
+                try:
+                    salary_sj = item.get("payment_from")
+                    if salary_sj is None:
+                        salary_sj = 0
+                except AttributeError:
+                    salary_sj = 0
+                cls.vacancies.append(SJVacancy(name_vacancy_sj, link_sj, description_sj, salary_sj, company_name_sj))
 
     def __repr__(self):
-        return f'SJ: {self.company_name} зарплата: {self.salary}'
-
-#Общий документ
-def sorting(vacancies):
-    """ Должен сортировать любой список вакансий по ежемесячной оплате (gt, lt magic methods) """
-    pass
-
-
-def get_top(vacancies, top_count):
-    """ Должен возвращать {top_count} записей из вакансий по зарплате (iter, next magic methods) """
-    pass
-
+        return f'HH: Название компании: {self.company_name} ' + super().__repr__()
 
 # if __name__ == '__main__':
-#     with open('result.json', 'r', encoding='utf-8') as f:
-#         files = json.load(f)
+# print(HHVacancy.filling_list_vacancies('res_HH.json'))
+# sort_list = sorting(HHVacancy.vacancies)
+# get_top(sort_list, 7)
+# HHVacancy.get_count_of_vacancy
+
+# print(SJVacancy.filling_list_vacancies('res_SJ.json'))
+# sort_list = sorting(SJVacancy.vacancies)
+# get_top(sort_list, 10)
+# print(SJVacancy.get_count_of_vacancy)
