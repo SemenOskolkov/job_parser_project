@@ -46,7 +46,8 @@ class Connector:
         """
         file = open(self.__data_file, 'r', encoding='utf-8')
         new_data = json.load(file)
-        new_data.append(data)
+        for item in data:
+            new_data.append(item)
         file.close()
 
         file = open(self.__data_file, 'w', encoding='utf-8')

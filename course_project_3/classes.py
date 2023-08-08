@@ -98,7 +98,6 @@ class SJVacancy(CountMixin, Vacancy):  # add counter mixin
         super().__init__(name, link, description, salary)
         self.count = CountMixin.get_count_of_vacancy
         self.company_name = company_name
-        print(self.count)
 
     @classmethod
     def filling_list_vacancies(cls, data_file):
