@@ -118,14 +118,3 @@ class SJVacancy(CountMixin, Vacancy):  # add counter mixin
 
     def __repr__(self):
         return f'HH: Название компании: {self.company_name} ' + super().__repr__()
-
-# if __name__ == '__main__':
-# print(HHVacancy.filling_list_vacancies('res_HH.json'))
-# sort_list = sorting(HHVacancy.vacancies)
-# get_top(sort_list, 7)
-# HHVacancy.get_count_of_vacancy
-
-# print(SJVacancy.filling_list_vacancies('res_SJ.json'))
-# sort_list = sorting(SJVacancy.vacancies)
-# get_top(sort_list, 10)
-# print(SJVacancy.get_count_of_vacancy)

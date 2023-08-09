@@ -2,7 +2,7 @@ import json
 
 import requests
 from abc import ABC, abstractmethod
-from connector import Connector
+from job_parser.connector import Connector
 
 
 class Engine(ABC):
