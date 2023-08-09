@@ -12,7 +12,8 @@ class Engine(ABC):
         return search_word, vacancies_count
 
     @staticmethod
-    def get_connector(file_name):  # Vozvrashaet ekzempliar classsa
+    def get_connector(file_name):
+        """ Возвращает экземпляр класса Connector """
         exemplar_conn = Connector(file_name)
         return exemplar_conn
 
